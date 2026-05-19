@@ -7,21 +7,19 @@ import { useFitToFill } from '../lib/fit-content';
 
 interface Props {
   bulletin: Bulletin;
+  /** When true, render only one half at 1650×2550 instead of two side-by-side. */
+  singleHalf?: boolean;
 }
 
-/**
- * 3300×2550 landscape (11×8.5" @ 300 DPI), two identical halves side-by-side.
- * Print landscape, cut down the middle, two 5.5×8.5" copies.
- */
 export const PrintRender = forwardRef<HTMLDivElement, Props>(function PrintRender(
-  { bulletin },
+  { bulletin, singleHalf = false },
   ref
 ) {
   return (
     <div
       ref={ref}
       style={{
-        width: '3300px',
+        width: singleHalf ? '1650px' : '3300px',
         height: '2550px',
         background: '#ffffff',
         display: 'flex',
@@ -30,7 +28,7 @@ export const PrintRender = forwardRef<HTMLDivElement, Props>(function PrintRende
       }}
     >
       <BulletinHalf bulletin={bulletin} />
-      <BulletinHalf bulletin={bulletin} />
+      {!singleHalf && <BulletinHalf bulletin={bulletin} />}
     </div>
   );
 });
@@ -65,7 +63,7 @@ function BulletinHalf({ bulletin }: { bulletin: Bulletin }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontWeight: 700,
+          fontWeight: 600,
           fontSize: '46px',
           color: '#000000',
         }}
@@ -83,6 +81,7 @@ function BulletinHalf({ bulletin }: { bulletin: Bulletin }) {
           fontSize: '30px',
           lineHeight: 1.3,
           color: '#000000',
+          fontWeight: 400,
         }}
       >
         <Header />
@@ -107,7 +106,7 @@ function Header() {
         style={{
           fontFamily: '"Bebas Neue", Impact, sans-serif',
           fontSize: '3.0em',
-          letterSpacing: '0.03em',
+          letterSpacing: '0.08em',
           margin: '8px 0 6px',
           lineHeight: 1.0,
           fontWeight: 400,
@@ -213,12 +212,13 @@ function Offering({ offering }: { offering: Bulletin['offering'] }) {
           <div>
             {sehsuah && (
               <span style={{ marginRight: citpiak ? '40px' : 0 }}>
-                <strong>Sehsuah:</strong> {sehsuah}
+                <span style={{ fontWeight: 600 }}>Sehsuah:</span> {sehsuah}
               </span>
             )}
             {citpiak && (
               <span>
-                <strong>Citpiak:</strong> {citpiak}
+                <span style={{ fontWeight: 600 }}>Citpiak:</span> {sehsuah}
+
               </span>
             )}
           </div>
@@ -265,7 +265,7 @@ function NextWeekGrid({ bulletin }: { bulletin: Bulletin }) {
 function DayHeader({ day, date }: { day: string; date: string }) {
   return (
     <div style={{ marginBottom: '4px', textAlign: 'center' }}>
-      <strong style={{ fontSize: '1.0em' }}>{day}</strong>{' '}
+      <span style={{ fontWeight: 600, fontSize: '1.0em' }}>{day}</span>{' '}
       <span style={{ fontSize: '1.0em' }}>{date}</span>
     </div>
   );
@@ -288,7 +288,7 @@ function SaturdayBlock({
         <div
           style={{
             textAlign: 'left',
-            fontWeight: 700,
+            fontWeight: 600,
             fontSize: '1.0em',
             margin: '2px 0 4px',
           }}
@@ -316,15 +316,14 @@ function SaturdayNightBlock({
 
   return (
     <div style={{ marginTop: '10px' }}>
-      <div style={{ fontWeight: 700, fontSize: '1.0em', marginBottom: '4px' }}>
+      <div style={{ fontWeight: 600, fontSize: '1.0em', marginBottom: '4px' }}>
         Saturday Night Service
       </div>
 
       {data.serviceType && (
         <div
           style={{
-            fontStyle: 'italic',
-            fontWeight: 700,
+            fontWeight: 600,
             fontSize: '0.95em',
             marginBottom: '4px',
           }}
@@ -390,10 +389,10 @@ function ContactInfo() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'auto auto auto',
+          gridTemplateColumns: 'auto 1fr auto',   // was 'auto auto auto'
           columnGap: '32px',
           rowGap: '2px',
-          justifyContent: 'center',
+          // remove: justifyContent: 'center',
           fontSize: '0.88em',
         }}
       >
@@ -416,7 +415,7 @@ function ContactRow({
 }) {
   return (
     <>
-      <div style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{role}:</div>
+      <div style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{role}:&nbsp;</div>
       <div style={{ whiteSpace: 'nowrap' }}>{name}</div>
       <div style={{ whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
         {phone}
@@ -439,7 +438,7 @@ function ProgramRowDisplay({ row, compact }: { row: ProgramRow; compact?: boolea
         lineHeight: 1.3,
       }}
     >
-      <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{label}:</span>
+      <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{label}:&nbsp;</span>
       <span style={{ whiteSpace: 'pre-line', flex: 1 }}>{row.value}</span>
     </div>
   );
@@ -463,7 +462,7 @@ function NekkhawmDisplay({
     [trimmed[4], trimmed[5]],
   ];
 
-  const fontSize = compact ? '24px' : '48px';
+  const fontSize = compact ? '24px' : '1em';
 
   return (
     <div
@@ -474,8 +473,8 @@ function NekkhawmDisplay({
         marginTop: '4px',
       }}
     >
-      <span style={{ fontWeight: 700, whiteSpace: 'nowrap', fontSize }}>
-        {label}:
+      <span style={{ fontWeight: 600, whiteSpace: 'nowrap', fontSize }}>
+        {label}:&nbsp;
       </span>
       <div
         style={{

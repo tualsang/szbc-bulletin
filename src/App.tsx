@@ -29,9 +29,13 @@ export default function App() {
     return storage.load(upcoming) ?? defaultBulletin(upcoming);
   });
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
-  const [exporting, setExporting] = useState(false);
+  const [exporting, setExporting] = useState<null | 'full' | 'half'>(null);
   const [exportError, setExportError] = useState<string | null>(null);
-  const printRef = useRef<HTMLDivElement>(null);
+
+  // Two hidden renders — full 3300×2550 (two halves) and half 1650×2550 (one).
+  // Each export button captures its corresponding ref.
+  const printRefFull = useRef<HTMLDivElement>(null);
+  const printRefHalf = useRef<HTMLDivElement>(null);
 
   // Auto-save (debounced 500ms)
   useEffect(() => {
@@ -52,19 +56,29 @@ export default function App() {
     }
   };
 
-  const onSave = async () => {
-    if (!printRef.current) return;
-    setExporting(true);
+  const onSaveFull = async () => {
+    if (!printRefFull.current) return;
+    setExporting('full');
     setExportError(null);
     try {
-      await saveToPhotos(printRef.current, bulletin.date);
+      await saveToPhotos(printRefFull.current, bulletin.date);
     } catch (err) {
-      console.error(err);
-      setExportError(
-        err instanceof Error ? err.message : 'Could not save image. Try again.'
-      );
+      setExportError(err instanceof Error ? err.message : 'Could not save image.');
     } finally {
-      setExporting(false);
+      setExporting(null);
+    }
+  };
+
+  const onSaveHalf = async () => {
+    if (!printRefHalf.current) return;
+    setExporting('half');
+    setExportError(null);
+    try {
+      await saveToPhotos(printRefHalf.current, bulletin.date, 'half');
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : 'Could not save image.');
+    } finally {
+      setExporting(null);
     }
   };
 
@@ -73,6 +87,8 @@ export default function App() {
     storage.clear(bulletin.date);
     setBulletin(defaultBulletin(bulletin.date));
   };
+
+  const isExporting = exporting !== null;
 
   return (
     <div className="min-h-dvh bg-stone-100 text-stone-900">
@@ -104,7 +120,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto px-4 py-4 pb-32">
+      <main className="max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto px-4 py-4 pb-40">
         {screen === 'form' ? (
           <BulletinForm value={bulletin} onChange={handleBulletinChange} />
         ) : (
@@ -129,7 +145,7 @@ export default function App() {
         </div>
       </main>
 
-      {/* Bottom save bar */}
+      {/* Bottom save bar — TWO export buttons */}
       <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-stone-200 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <div className="max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto">
           {exportError && (
@@ -137,23 +153,45 @@ export default function App() {
               <AlertTriangle size={16} /> {exportError}
             </div>
           )}
-          <button
-            type="button"
-            onClick={onSave}
-            disabled={exporting}
-            className="w-full h-14 rounded-2xl bg-stone-900 text-white text-base font-semibold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-60"
-          >
-            {exporting ? (
-              <>
-                <span className="inline-block h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                Preparing image…
-              </>
-            ) : (
-              <>
-                <Download size={18} /> Save bulletin PNG
-              </>
-            )}
-          </button>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={onSaveHalf}
+              disabled={isExporting}
+              className="h-14 rounded-2xl bg-white border-2 border-stone-900 text-stone-900 text-sm sm:text-base font-semibold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-60"
+            >
+              {exporting === 'half' ? (
+                <>
+                  <span className="inline-block h-4 w-4 rounded-full border-2 border-stone-300 border-t-stone-900 animate-spin" />
+                  Preparing…
+                </>
+              ) : (
+                <>
+                  <Download size={18} /> Half (one copy)
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={onSaveFull}
+              disabled={isExporting}
+              className="h-14 rounded-2xl bg-stone-900 text-white text-sm sm:text-base font-semibold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-60"
+            >
+              {exporting === 'full' ? (
+                <>
+                  <span className="inline-block h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                  Preparing…
+                </>
+              ) : (
+                <>
+                  <Download size={18} /> Full (two copies)
+                </>
+              )}
+            </button>
+          </div>
+
           <p className="text-[11px] text-stone-500 text-center mt-2">
             On iPhone/iPad: choose <span className="font-semibold">Save Image</span>{' '}
             from the share sheet to send it to Photos.
@@ -162,8 +200,8 @@ export default function App() {
       </div>
 
       {/*
-        Hidden print render — captured by html-to-image. Positioned off-screen
-        (left: -100000px) instead of opacity:0 so it doesn't affect mobile
+        Hidden print renders — captured by html-to-image. Positioned off-screen
+        (left: -100000px) instead of opacity:0 so they don't affect mobile
         scroll height or cause iOS Safari horizontal-scroll glitches.
       */}
       <div
@@ -177,7 +215,20 @@ export default function App() {
           pointerEvents: 'none',
         }}
       >
-        <PrintRender ref={printRef} bulletin={bulletin} />
+        <PrintRender ref={printRefFull} bulletin={bulletin} />
+      </div>
+      <div
+        aria-hidden
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: '-100000px',
+          width: '1650px',
+          height: '2550px',
+          pointerEvents: 'none',
+        }}
+      >
+        <PrintRender ref={printRefHalf} bulletin={bulletin} singleHalf />
       </div>
     </div>
   );
@@ -196,11 +247,10 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-        active
-          ? 'bg-stone-900 text-white'
-          : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
-      }`}
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${active
+        ? 'bg-stone-900 text-white'
+        : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+        }`}
     >
       {children}
     </button>
