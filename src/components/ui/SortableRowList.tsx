@@ -3,9 +3,12 @@ import {
     DndContext,
     closestCenter,
     PointerSensor,
+    MouseSensor,
+    TouchSensor,
     useSensor,
     useSensors,
     DragEndEvent,
+    DragStartEvent,
 } from '@dnd-kit/core';
 import {
     SortableContext,
@@ -32,7 +35,17 @@ interface Props {
  */
 export function SortableRowList({ rows, onChange }: Props) {
     const sensors = useSensors(
-        useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+        useSensor(MouseSensor, {
+            // Require the mouse to move 5px before activating — prevents
+            // accidental drags on simple clicks.
+            activationConstraint: { distance: 5 },
+        }),
+        useSensor(TouchSensor, {
+            // On touch devices, require a 200ms hold + 5px tolerance so
+            // normal taps still work and text selection is suppressed before
+            // the drag activates.
+            activationConstraint: { delay: 200, tolerance: 5 },
+        })
     );
 
     // Snapshot of the most recently deleted row, used for undo.
@@ -47,7 +60,17 @@ export function SortableRowList({ rows, onChange }: Props) {
         };
     }, []);
 
+    const onDragStart = (_e: DragStartEvent) => {
+        // Prevent text selection while dragging across the whole page.
+        document.body.style.userSelect = 'none';
+        (document.body.style as CSSStyleDeclaration & { webkitUserSelect: string }).webkitUserSelect = 'none';
+    };
+
     const onDragEnd = (e: DragEndEvent) => {
+        // Restore text selection.
+        document.body.style.userSelect = '';
+        (document.body.style as CSSStyleDeclaration & { webkitUserSelect: string }).webkitUserSelect = '';
+
         const { active, over } = e;
         if (!over || active.id === over.id) return;
         const oldIdx = rows.findIndex((r) => r.id === active.id);
@@ -86,6 +109,7 @@ export function SortableRowList({ rows, onChange }: Props) {
             <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
+                onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
             >
                 <SortableContext

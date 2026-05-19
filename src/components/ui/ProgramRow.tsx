@@ -28,13 +28,15 @@ export function ProgramRowEditor({ row, onChange, onRemove }: Props) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="flex gap-2 items-start bg-white">
+    <div ref={setNodeRef} style={{ ...style, userSelect: isDragging ? 'none' : undefined }} className="flex gap-2 items-start bg-white">
       {/* Drag handle */}
       <button
         type="button"
         aria-label="Drag to reorder"
         {...attributes}
         {...listeners}
+        onMouseDown={(e) => e.currentTarget.focus()}
+        style={{ userSelect: 'none', WebkitUserSelect: 'none' } as React.CSSProperties}
         className="shrink-0 h-10 w-7 rounded-lg flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 active:bg-stone-200 touch-none cursor-grab active:cursor-grabbing"
       >
         <GripVertical size={18} />
