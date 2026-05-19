@@ -75,7 +75,13 @@ export function ProgramSectionEditor({ section, onChange }: Props) {
               names={section.nekkhawmNames}
               onNamesChange={(names) => onChange({ ...section, nekkhawmNames: names })}
               group={section.communionGroup}
-              onGroupChange={(g) => onChange({ ...section, communionGroup: g })}
+              onGroupChange={(g) =>
+                onChange({
+                  ...section,
+                  communionGroup: g,
+                  nekkhawmNames: [...COMMUNION_GROUPS[g]],
+                })
+              }
             />
           </div>
         )}

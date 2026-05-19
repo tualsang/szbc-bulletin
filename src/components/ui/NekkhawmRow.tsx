@@ -17,11 +17,6 @@ export function NekkhawmRow({
   group,
   onGroupChange,
 }: Props) {
-  const fillFromGroup = (g: 1 | 2) => {
-    onGroupChange(g);
-    onNamesChange([...COMMUNION_GROUPS[g]]);
-  };
-
   return (
     <div className="space-y-3">
       <div className="flex items-end gap-2">
@@ -37,7 +32,7 @@ export function NekkhawmRow({
         <div className="flex gap-1">
           <button
             type="button"
-            onClick={() => fillFromGroup(1)}
+            onClick={() => onGroupChange(1)}
             className={`px-3 py-2 rounded-lg text-sm font-medium border ${group === 1
               ? 'bg-stone-900 text-white border-stone-900'
               : 'bg-white text-stone-700 border-stone-300'
@@ -47,7 +42,7 @@ export function NekkhawmRow({
           </button>
           <button
             type="button"
-            onClick={() => fillFromGroup(2)}
+            onClick={() => onGroupChange(2)}
             className={`px-3 py-2 rounded-lg text-sm font-medium border ${group === 2
               ? 'bg-stone-900 text-white border-stone-900'
               : 'bg-white text-stone-700 border-stone-300'

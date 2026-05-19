@@ -52,7 +52,7 @@ export function ProgramRowEditor({ row, onChange, onRemove }: Props) {
         <textarea
           value={row.value}
           onChange={(e) => onChange({ ...row, value: e.target.value })}
-          placeholder="Value (name or detail)"
+          placeholder="Name / Detail"
           rows={1}
           className="sm:col-span-3 px-3 py-2 rounded-lg border border-stone-300 bg-white text-base resize-y min-h-[40px] focus:outline-none focus:ring-2 focus:ring-stone-900 focus:border-stone-900"
         />
