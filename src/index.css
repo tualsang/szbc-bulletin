@@ -32,6 +32,7 @@ body {
     min-height: 100dvh;
   }
 }
+
 @supports not (height: 100dvh) {
   .min-h-dvh {
     min-height: 100vh;
@@ -51,4 +52,14 @@ button,
 [role='switch'],
 label {
   touch-action: manipulation;
+}
+
+@keyframes shrink {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
 }

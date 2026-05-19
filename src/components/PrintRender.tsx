@@ -432,7 +432,6 @@ function ProgramRowDisplay({ row, compact }: { row: ProgramRow; compact?: boolea
     <div
       style={{
         display: 'flex',
-        gap: '8px',
         alignItems: 'baseline',
         fontSize: compact ? '0.95em' : '1.0em',
         lineHeight: 1.3,
@@ -468,7 +467,6 @@ function NekkhawmDisplay({
     <div
       style={{
         display: 'flex',
-        gap: '12px',
         alignItems: 'baseline',
         marginTop: '4px',
       }}

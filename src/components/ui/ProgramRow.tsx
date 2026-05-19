@@ -29,8 +29,7 @@ export function ProgramRowEditor({ row, onChange, onRemove }: Props) {
 
   return (
     <div ref={setNodeRef} style={style} className="flex gap-2 items-start bg-white">
-      {/* Drag handle — only this element initiates a drag, so the rest of the
-          row (and the page) stays scrollable on touch devices. */}
+      {/* Drag handle */}
       <button
         type="button"
         aria-label="Drag to reorder"
@@ -41,7 +40,8 @@ export function ProgramRowEditor({ row, onChange, onRemove }: Props) {
         <GripVertical size={18} />
       </button>
 
-      <div className="flex-1 grid grid-cols-1 sm:grid-cols-5 gap-2">
+      {/* Stacked on phone, side-by-side on sm+ */}
+      <div className="flex-1 flex flex-col sm:grid sm:grid-cols-5 gap-2">
         <input
           type="text"
           value={row.label}

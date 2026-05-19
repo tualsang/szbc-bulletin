@@ -23,7 +23,7 @@ export function NekkhawmRow({
   };
 
   return (
-    <div className="space-y-3 rounded-xl bg-stone-50 p-3 border border-stone-200">
+    <div className="space-y-3">
       <div className="flex items-end gap-2">
         <label className="flex-1">
           <span className="block text-sm font-medium text-stone-600 mb-1">Label</span>
@@ -38,22 +38,20 @@ export function NekkhawmRow({
           <button
             type="button"
             onClick={() => fillFromGroup(1)}
-            className={`px-3 py-2 rounded-lg text-sm font-medium border ${
-              group === 1
-                ? 'bg-stone-900 text-white border-stone-900'
-                : 'bg-white text-stone-700 border-stone-300'
-            }`}
+            className={`px-3 py-2 rounded-lg text-sm font-medium border ${group === 1
+              ? 'bg-stone-900 text-white border-stone-900'
+              : 'bg-white text-stone-700 border-stone-300'
+              }`}
           >
             Group 1
           </button>
           <button
             type="button"
             onClick={() => fillFromGroup(2)}
-            className={`px-3 py-2 rounded-lg text-sm font-medium border ${
-              group === 2
-                ? 'bg-stone-900 text-white border-stone-900'
-                : 'bg-white text-stone-700 border-stone-300'
-            }`}
+            className={`px-3 py-2 rounded-lg text-sm font-medium border ${group === 2
+              ? 'bg-stone-900 text-white border-stone-900'
+              : 'bg-white text-stone-700 border-stone-300'
+              }`}
           >
             Group 2
           </button>

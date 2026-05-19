@@ -47,14 +47,28 @@ export function ProgramSectionEditor({ section, onChange }: Props) {
       </button>
 
       <div className="pt-2 border-t border-stone-100">
-        <Toggle
-          label="Communion (Nekkhawm)"
-          checked={section.hasCommunion}
-          onChange={handleCommunionToggle}
-        />
+        {!section.hasCommunion && (
+          <Toggle
+            label="Communion (Nekkhawm)"
+            checked={section.hasCommunion}
+            onChange={handleCommunionToggle}
+          />
+        )}
 
         {section.hasCommunion && (
-          <div className="mt-3">
+          <div className="rounded-xl bg-stone-50 border border-stone-200 p-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-stone-800">
+                Communion (Nekkhawm)
+              </span>
+              <button
+                type="button"
+                onClick={() => handleCommunionToggle(false)}
+                className="text-xs text-stone-500 hover:text-stone-800 underline"
+              >
+                Remove
+              </button>
+            </div>
             <NekkhawmRow
               label={section.nekkhawmLabel}
               onLabelChange={(label) => onChange({ ...section, nekkhawmLabel: label })}
