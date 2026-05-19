@@ -90,7 +90,7 @@ export function defaultBulletin(dateISO: string): Bulletin {
     offering: { sehsuah: '', citpiak: '' },
     nextWeekSaturday: {
       subtitle: 'Saturday Thunget',
-      rows: [emptyRow('Amun', ''), emptyRow('Ahun', ''), emptyRow('LST', '')],
+      rows: [emptyRow('Amun', 'Biakinn'), emptyRow('Ahun', '10:00 AM'), emptyRow('LST', '')],
     },
     nextWeekSaturdayNight: {
       serviceType: '',

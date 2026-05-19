@@ -41,56 +41,72 @@ const SOFT_RULE = '1px solid #000000';
 /* ===================== HALF ===================== */
 
 function BulletinHalf({ bulletin }: { bulletin: Bulletin }) {
+  const dateDisplay =
+    bulletin.dateOverride.trim() || formatDateShort(bulletin.date);
+
   return (
     <div
       style={{
         width: '1650px',
         height: '2550px',
-        padding: '80px 90px',
+        // Top padding is now absorbed by the date band; keep horizontal + bottom padding.
+        padding: '0 90px 80px',
         boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        color: '#000000',
-        fontSize: '28px',
-        lineHeight: 1.3,
       }}
     >
-      <Header bulletin={bulletin} />
-      <TodaysProgramFitted section={bulletin.todaysProgram} />
-      <Offering offering={bulletin.offering} />
-      <NextWeekGrid bulletin={bulletin} />
-      <ContactInfo />
-    </div>
-  );
-}
-
-/* ===================== HEADER ===================== */
-
-function Header({ bulletin }: { bulletin: Bulletin }) {
-  const dateDisplay =
-    bulletin.dateOverride.trim() || formatDateShort(bulletin.date);
-
-  return (
-    <div style={{ textAlign: 'center' }}>
-      {/* Date sits ABOVE the top rule */}
+      {/* Date band: fixed-height box that vertically centers the date between
+          the very top of the half and the rule below it. */}
       <div
         style={{
+          height: '130px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           fontWeight: 700,
-          fontSize: '1.25em',
-          marginBottom: '6px',
-          letterSpacing: '0.01em',
+          fontSize: '46px',
+          color: '#000000',
         }}
       >
         {dateDisplay}
       </div>
-
       <div style={{ borderTop: RULE }} />
 
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+          fontSize: '30px',
+          lineHeight: 1.3,
+          color: '#000000',
+        }}
+      >
+        <Header />
+        <TodaysProgramFitted section={bulletin.todaysProgram} />
+        <div style={{ flex: 1, minHeight: 0 }} />
+
+        {/* Next-week area runs larger than Today's Program. */}
+        <div style={{ fontSize: '38px' }}>
+          <Offering offering={bulletin.offering} />
+          <NextWeekGrid bulletin={bulletin} />
+          <ContactInfo />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Header() {
+  return (
+    <div style={{ textAlign: 'center' }}>
       <h1
         style={{
           fontFamily: '"Bebas Neue", Impact, sans-serif',
-          fontSize: '2.6em',
+          fontSize: '3.0em',
           letterSpacing: '0.03em',
           margin: '8px 0 6px',
           lineHeight: 1.0,
@@ -104,7 +120,7 @@ function Header({ bulletin }: { bulletin: Bulletin }) {
         style={{
           fontFamily: 'Lora, Georgia, serif',
           fontStyle: 'italic',
-          fontSize: '0.92em',
+          fontSize: '1.0em',
           margin: '0 0 2px',
         }}
       >
@@ -114,7 +130,7 @@ function Header({ bulletin }: { bulletin: Bulletin }) {
         style={{
           fontFamily: 'Lora, Georgia, serif',
           fontStyle: 'italic',
-          fontSize: '0.82em',
+          fontSize: '0.9em',
           marginBottom: '10px',
         }}
       >
@@ -137,7 +153,7 @@ function Header({ bulletin }: { bulletin: Bulletin }) {
 function TodaysProgramFitted({ section }: { section: ProgramSection }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  useFitToFill(containerRef, contentRef, { min: 22, max: 44 });
+  useFitToFill(containerRef, contentRef, { min: 36, max: 60 });
 
   const visibleRows = section.rows.filter((r) => r.label.trim() || r.value.trim());
   const empty = visibleRows.length === 0 && !section.hasCommunion;
@@ -157,10 +173,8 @@ function TodaysProgramFitted({ section }: { section: ProgramSection }) {
         <div
           style={{
             textAlign: 'center',
-            fontFamily: 'Lora, Georgia, serif',
-            fontStyle: 'italic',
-            fontSize: '1.1em',
-            marginBottom: '8px',
+            fontSize: '0.7em',
+            marginBottom: '6px',
           }}
         >
           Today&rsquo;s Program
@@ -449,7 +463,7 @@ function NekkhawmDisplay({
     [trimmed[4], trimmed[5]],
   ];
 
-  const fontSize = compact ? '0.78em' : '0.95em';
+  const fontSize = compact ? '24px' : '48px';
 
   return (
     <div
