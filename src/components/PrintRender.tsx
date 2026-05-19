@@ -455,47 +455,41 @@ function NekkhawmDisplay({
   const trimmed = names.map((n) => n.trim());
   if (trimmed.every((n) => !n)) return null;
 
-  const grid = [
-    [trimmed[0], trimmed[1]],
-    [trimmed[2], trimmed[3]],
-    [trimmed[4], trimmed[5]],
-  ];
+  // Left column = names 1-3, right column = names 4-6 (top-down per column,
+  // not row-major). This matches the original PSD reference and reads left-
+  // top-down → right-top-down.
+  const left = [trimmed[0], trimmed[1], trimmed[2]];
+  const right = [trimmed[3], trimmed[4], trimmed[5]];
 
-  const fontSize = compact ? '24px' : '1em';
+  // No font override — names render at the same size as program-row values
+  // above them. Compact mode (narrow next-week Sunday column) drops one notch
+  // since space is tight there.
+  const fontSize = compact ? '0.85em' : '1em';
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'baseline',
-        marginTop: '4px',
-      }}
-    >
-      <span style={{ fontWeight: 600, whiteSpace: 'nowrap', fontSize }}>
-        {label}:&nbsp;
-      </span>
+    <div style={{ fontSize, lineHeight: 1.3 }}>
+      {/* Label line — same weight/size as a program row's label. */}
+      <div style={{ fontWeight: 600 }}>{label.replace(/:\s*$/, '')}:</div>
+
+      {/* Names laid out as two columns of three. Each name on its own line. */}
       <div
         style={{
-          flex: 1,
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
-          columnGap: '24px',
-          rowGap: '2px',
-          fontSize,
+          columnGap: '16px',
+          paddingLeft: '1em', // indent under the label
         }}
       >
-        {grid.flat().map((name, i) => (
-          <div
-            key={i}
-            style={{
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {name}
-          </div>
-        ))}
+        <div>
+          {left.map((n, i) => (
+            <div key={i} style={{ whiteSpace: 'nowrap' }}>{n}</div>
+          ))}
+        </div>
+        <div>
+          {right.map((n, i) => (
+            <div key={i} style={{ whiteSpace: 'nowrap' }}>{n}</div>
+          ))}
+        </div>
       </div>
     </div>
   );
