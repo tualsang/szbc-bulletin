@@ -1,6 +1,8 @@
 import { Bulletin } from './schema';
 
-const KEY = (date: string) => `bulletin-draft-${date}`;
+export const SCHEMA_VERSION = 3;
+
+const KEY = (date: string) => `bulletin-draft-v${SCHEMA_VERSION}-${date}`;
 
 export const storage = {
   load(date: string): Bulletin | null {
@@ -22,5 +24,10 @@ export const storage = {
   },
   clear(date: string) {
     localStorage.removeItem(KEY(date));
+  },
+  clearAll() {
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith('bulletin-draft-'))
+      .forEach((k) => localStorage.removeItem(k));
   },
 };

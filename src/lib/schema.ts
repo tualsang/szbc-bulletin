@@ -16,8 +16,12 @@ export const ProgramSectionSchema = z.object({
 });
 export type ProgramSection = z.infer<typeof ProgramSectionSchema>;
 
+export const ServiceTypeSchema = z.enum(['', 'Nupi Hun', 'Khangno Hun']);
+export type ServiceType = z.infer<typeof ServiceTypeSchema>;
+
 export const Bulletin = z.object({
   date: z.string(),
+  dateOverride: z.string().default(''),
   todaysProgram: ProgramSectionSchema,
   offering: z.object({
     sehsuah: z.string(),
@@ -28,15 +32,14 @@ export const Bulletin = z.object({
     rows: z.array(ProgramRowSchema),
   }),
   nextWeekSaturdayNight: z.object({
-    chairperson: z.string(),
-    sermon: z.string(),
+    serviceType: ServiceTypeSchema.default(''),
+    rows: z.array(ProgramRowSchema),
   }),
   nextWeekSunday: ProgramSectionSchema,
 });
 
 export type Bulletin = z.infer<typeof Bulletin>;
 
-// ---------- Defaults / factories ----------
 const newId = () =>
   typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID()
@@ -49,12 +52,13 @@ export function emptyRow(label = '', value = ''): ProgramRow {
 export function defaultTodaysProgram(): ProgramSection {
   return {
     rows: [
-      emptyRow('Hunuk:', ''),
-      emptyRow('Phatna leh Biakpiakna:', 'Shalom Worship Team'),
-      emptyRow('Sumpi-Apna:', ''),
-      emptyRow('Thuzaksakna:', 'Shalom Departments'),
-      emptyRow('Thungetna:', ''),
-      emptyRow('Hanthotna:', ''),
+      emptyRow('Hunuk', ''),
+      emptyRow('Phatna leh Biakpiakna', 'Shalom Worship Team'),
+      emptyRow('Sumpi-Apna', ''),
+      emptyRow('Thuzaksakna', "Shalom' Departments"),
+      emptyRow('Thungetna', ''),
+      emptyRow('Hanthotna', ''),
+      emptyRow('Tawpna Thungetna', ''),
     ],
     hasCommunion: false,
     communionGroup: 1,
@@ -66,10 +70,10 @@ export function defaultTodaysProgram(): ProgramSection {
 export function defaultNextWeekSunday(): ProgramSection {
   return {
     rows: [
-      emptyRow('Hunuk:', ''),
-      emptyRow('Hanthotna:', ''),
-      emptyRow('Sumpi Ap-na:', ''),
-      emptyRow('Thungetna:', ''),
+      emptyRow('Hunuk', ''),
+      emptyRow('Hanthotna', ''),
+      emptyRow('Sumpi-Apna', ''),
+      emptyRow('Thungetna', ''),
     ],
     hasCommunion: false,
     communionGroup: 1,
@@ -81,13 +85,17 @@ export function defaultNextWeekSunday(): ProgramSection {
 export function defaultBulletin(dateISO: string): Bulletin {
   return {
     date: dateISO,
+    dateOverride: '',
     todaysProgram: defaultTodaysProgram(),
     offering: { sehsuah: '', citpiak: '' },
     nextWeekSaturday: {
       subtitle: 'Saturday Thunget',
       rows: [emptyRow('Amun', ''), emptyRow('Ahun', ''), emptyRow('LST', '')],
     },
-    nextWeekSaturdayNight: { chairperson: '', sermon: '' },
+    nextWeekSaturdayNight: {
+      serviceType: '',
+      rows: [emptyRow('Chairperson', ''), emptyRow('Sermon', '')],
+    },
     nextWeekSunday: defaultNextWeekSunday(),
   };
 }

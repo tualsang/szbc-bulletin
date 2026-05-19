@@ -8,6 +8,17 @@ import { BulletinForm } from './components/BulletinForm';
 import { BulletinPreview } from './components/BulletinPreview';
 import { PrintRender } from './components/PrintRender';
 
+// ?reset=1 wipes ALL stored drafts then strips the query. Handy when the
+// schema has changed and old drafts are silently failing to load — also
+// useful for getting the pastor unstuck remotely.
+if (typeof window !== 'undefined') {
+  const params = new URLSearchParams(location.search);
+  if (params.get('reset') === '1') {
+    storage.clearAll();
+    history.replaceState({}, '', location.pathname);
+  }
+}
+
 type Screen = 'form' | 'preview';
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
@@ -32,7 +43,6 @@ export default function App() {
     return () => window.clearTimeout(t);
   }, [bulletin]);
 
-  // If the user changes the date, try to load a draft for that date
   const handleBulletinChange = (next: Bulletin) => {
     if (next.date !== bulletin.date) {
       const found = storage.load(next.date);
@@ -59,7 +69,7 @@ export default function App() {
   };
 
   const onReset = () => {
-    if (!confirm('Clear this Sunday\'s draft and start over?')) return;
+    if (!confirm("Clear this Sunday's draft and start over?")) return;
     storage.clear(bulletin.date);
     setBulletin(defaultBulletin(bulletin.date));
   };
@@ -68,7 +78,7 @@ export default function App() {
     <div className="min-h-dvh bg-stone-100 text-stone-900">
       {/* Top bar */}
       <header className="bg-white border-b border-stone-200 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="h-9 w-9 rounded-xl bg-stone-900 text-white flex items-center justify-center font-display text-lg">
               S
@@ -84,7 +94,7 @@ export default function App() {
         </div>
 
         {/* Tabs */}
-        <div className="max-w-2xl mx-auto px-4 pb-3 flex gap-2">
+        <div className="max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto px-4 pb-3 flex gap-2">
           <TabButton active={screen === 'form'} onClick={() => setScreen('form')}>
             <FileText size={16} /> Edit
           </TabButton>
@@ -94,7 +104,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-4 pb-32">
+      <main className="max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto px-4 py-4 pb-32">
         {screen === 'form' ? (
           <BulletinForm value={bulletin} onChange={handleBulletinChange} />
         ) : (
@@ -121,7 +131,7 @@ export default function App() {
 
       {/* Bottom save bar */}
       <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-stone-200 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto">
           {exportError && (
             <div className="mb-2 flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
               <AlertTriangle size={16} /> {exportError}
@@ -145,21 +155,25 @@ export default function App() {
             )}
           </button>
           <p className="text-[11px] text-stone-500 text-center mt-2">
-            On iPhone: choose <span className="font-semibold">Save Image</span> from the
-            share sheet to send it to Photos.
+            On iPhone/iPad: choose <span className="font-semibold">Save Image</span>{' '}
+            from the share sheet to send it to Photos.
           </p>
         </div>
       </div>
 
-      {/* Hidden print render — captured by html-to-image */}
+      {/*
+        Hidden print render — captured by html-to-image. Positioned off-screen
+        (left: -100000px) instead of opacity:0 so it doesn't affect mobile
+        scroll height or cause iOS Safari horizontal-scroll glitches.
+      */}
       <div
         aria-hidden
         style={{
           position: 'fixed',
           top: 0,
-          left: 0,
-          zIndex: -1,
-          opacity: 0,
+          left: '-100000px',
+          width: '3300px',
+          height: '2550px',
           pointerEvents: 'none',
         }}
       >

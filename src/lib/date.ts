@@ -21,13 +21,18 @@ const DAYS = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
 ];
 
+/** "17 May 2026" — the format used in the printed bulletin header. */
+export function formatDateShort(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return `${dt.getUTCDate()} ${MONTHS[dt.getUTCMonth()]} ${dt.getUTCFullYear()}`;
+}
+
+/** "May 17, 2026" — for the form UI subtitles. */
 export function formatDate(iso: string, opts: { withDay?: boolean } = {}): string {
   const [y, m, d] = iso.split('-').map(Number);
   const dt = new Date(Date.UTC(y, m - 1, d));
-  const month = MONTHS[dt.getUTCMonth()];
-  const day = dt.getUTCDate();
-  const year = dt.getUTCFullYear();
-  const base = `${month} ${day}, ${year}`;
+  const base = `${MONTHS[dt.getUTCMonth()]} ${dt.getUTCDate()}, ${dt.getUTCFullYear()}`;
   if (opts.withDay) return `${DAYS[dt.getUTCDay()]}, ${base}`;
   return base;
 }

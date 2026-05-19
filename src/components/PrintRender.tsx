@@ -1,18 +1,17 @@
 import { forwardRef, useRef } from 'react';
 import { Bulletin, ProgramSection, ProgramRow } from '../lib/schema';
 import { CHURCH_INFO } from '../lib/constants';
-import { addDays, formatDate, dayName } from '../lib/date';
+import { addDays, formatDateShort, dayName } from '../lib/date';
 import { formatMoney } from '../lib/money';
-import { useFitContent } from '../lib/fit-content';
+import { useFitToFill } from '../lib/fit-content';
 
 interface Props {
   bulletin: Bulletin;
 }
 
 /**
- * Renders the print-ready PNG source: 3300×2550 landscape (11×8.5" at 300 DPI),
- * containing TWO identical bulletin halves side-by-side. Print landscape on
- * letter paper, cut down the middle vertically, get two 5.5×8.5" copies.
+ * 3300×2550 landscape (11×8.5" @ 300 DPI), two identical halves side-by-side.
+ * Print landscape, cut down the middle, two 5.5×8.5" copies.
  */
 export const PrintRender = forwardRef<HTMLDivElement, Props>(function PrintRender(
   { bulletin },
@@ -27,7 +26,7 @@ export const PrintRender = forwardRef<HTMLDivElement, Props>(function PrintRende
         background: '#ffffff',
         display: 'flex',
         fontFamily: 'Manrope, system-ui, sans-serif',
-        color: '#1c1917',
+        color: '#000000',
       }}
     >
       <BulletinHalf bulletin={bulletin} />
@@ -36,12 +35,12 @@ export const PrintRender = forwardRef<HTMLDivElement, Props>(function PrintRende
   );
 });
 
+const RULE = '2px solid #000000';
+const SOFT_RULE = '1px solid #000000';
+
 /* ===================== HALF ===================== */
 
 function BulletinHalf({ bulletin }: { bulletin: Bulletin }) {
-  const innerRef = useRef<HTMLDivElement>(null);
-  useFitContent(innerRef, 24, 14);
-
   return (
     <div
       style={{
@@ -51,28 +50,17 @@ function BulletinHalf({ bulletin }: { bulletin: Bulletin }) {
         boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',
-        borderRight: '1px dashed #d6d3d1',
         overflow: 'hidden',
+        color: '#000000',
+        fontSize: '28px',
+        lineHeight: 1.3,
       }}
     >
-      <div
-        ref={innerRef}
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: 0,
-          fontSize: '24px',
-          lineHeight: 1.35,
-        }}
-      >
-        <Header bulletin={bulletin} />
-        <TodaysProgram section={bulletin.todaysProgram} />
-        <div style={{ flex: 1, minHeight: 0 }} />
-        <Offering offering={bulletin.offering} />
-        <NextWeekGrid bulletin={bulletin} />
-        <ContactInfo />
-      </div>
+      <Header bulletin={bulletin} />
+      <TodaysProgramFitted section={bulletin.todaysProgram} />
+      <Offering offering={bulletin.offering} />
+      <NextWeekGrid bulletin={bulletin} />
+      <ContactInfo />
     </div>
   );
 }
@@ -80,28 +68,44 @@ function BulletinHalf({ bulletin }: { bulletin: Bulletin }) {
 /* ===================== HEADER ===================== */
 
 function Header({ bulletin }: { bulletin: Bulletin }) {
+  const dateDisplay =
+    bulletin.dateOverride.trim() || formatDateShort(bulletin.date);
+
   return (
-    <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-      <div style={{ fontWeight: 700, fontSize: '1.1em', letterSpacing: '0.05em' }}>
-        {formatDate(bulletin.date, { withDay: true }).toUpperCase()}
+    <div style={{ textAlign: 'center' }}>
+      {/* Date sits ABOVE the top rule */}
+      <div
+        style={{
+          fontWeight: 700,
+          fontSize: '1.25em',
+          marginBottom: '6px',
+          letterSpacing: '0.01em',
+        }}
+      >
+        {dateDisplay}
       </div>
+
+      <div style={{ borderTop: RULE }} />
+
       <h1
         style={{
           fontFamily: '"Bebas Neue", Impact, sans-serif',
           fontSize: '2.6em',
-          letterSpacing: '0.04em',
-          margin: '12px 0 8px',
-          lineHeight: 1.05,
+          letterSpacing: '0.03em',
+          margin: '8px 0 6px',
+          lineHeight: 1.0,
+          fontWeight: 400,
         }}
       >
         {CHURCH_INFO.name}
       </h1>
+
       <div
         style={{
           fontFamily: 'Lora, Georgia, serif',
           fontStyle: 'italic',
-          fontSize: '0.95em',
-          margin: '6px 0 4px',
+          fontSize: '0.92em',
+          margin: '0 0 2px',
         }}
       >
         {CHURCH_INFO.verse}
@@ -110,38 +114,70 @@ function Header({ bulletin }: { bulletin: Bulletin }) {
         style={{
           fontFamily: 'Lora, Georgia, serif',
           fontStyle: 'italic',
-          fontSize: '0.85em',
-          color: '#44403c',
+          fontSize: '0.82em',
+          marginBottom: '10px',
         }}
       >
         {CHURCH_INFO.address}
       </div>
-      <hr
-        style={{
-          border: 'none',
-          borderTop: '2px solid #1c1917',
-          margin: '18px 0 0',
-        }}
-      />
+
+      <div style={{ borderTop: RULE }} />
     </div>
   );
 }
 
-/* ===================== TODAY'S PROGRAM ===================== */
+/* ===================== TODAY'S PROGRAM (fills available space) ===================== */
 
-function TodaysProgram({ section }: { section: ProgramSection }) {
+/**
+ * Wraps Today's Program in a flex:1 container that absorbs all vertical space
+ * between the header and the offering. The inner content's font-size is
+ * grown via useFitToFill so the rows naturally expand to fill that space
+ * (capped at 44px so single-row weeks don't get absurd).
+ */
+function TodaysProgramFitted({ section }: { section: ProgramSection }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  useFitToFill(containerRef, contentRef, { min: 22, max: 44 });
+
   const visibleRows = section.rows.filter((r) => r.label.trim() || r.value.trim());
-  if (visibleRows.length === 0 && !section.hasCommunion) return null;
+  const empty = visibleRows.length === 0 && !section.hasCommunion;
 
   return (
-    <div style={{ marginBottom: '20px' }}>
-      <SectionHeader title="Today's Program" />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {visibleRows.map((row) => (
-          <ProgramRowDisplay key={row.id} row={row} />
-        ))}
-        {section.hasCommunion && (
-          <NekkhawmDisplay label={section.nekkhawmLabel} names={section.nekkhawmNames} />
+    <div
+      ref={containerRef}
+      style={{
+        flex: 1,
+        minHeight: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '8px 0',
+      }}
+    >
+      <div ref={contentRef} style={{ display: 'flex', flexDirection: 'column' }}>
+        <div
+          style={{
+            textAlign: 'center',
+            fontFamily: 'Lora, Georgia, serif',
+            fontStyle: 'italic',
+            fontSize: '1.1em',
+            marginBottom: '8px',
+          }}
+        >
+          Today&rsquo;s Program
+        </div>
+
+        {!empty && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {visibleRows.map((row) => (
+              <ProgramRowDisplay key={row.id} row={row} />
+            ))}
+            {section.hasCommunion && (
+              <NekkhawmDisplay
+                label={section.nekkhawmLabel}
+                names={section.nekkhawmNames}
+              />
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -153,35 +189,39 @@ function TodaysProgram({ section }: { section: ProgramSection }) {
 function Offering({ offering }: { offering: Bulletin['offering'] }) {
   const sehsuah = formatMoney(offering.sehsuah);
   const citpiak = formatMoney(offering.citpiak);
-  if (!sehsuah && !citpiak) return null;
+  const hasMoney = sehsuah || citpiak;
 
   return (
-    <div style={{ margin: '20px 0', textAlign: 'center' }}>
-      <div
-        style={{
-          display: 'inline-block',
-          borderTop: '1.5px solid #1c1917',
-          borderBottom: '1.5px solid #1c1917',
-          padding: '10px 28px',
-          fontSize: '0.95em',
-        }}
-      >
-        {sehsuah && (
-          <span style={{ marginRight: citpiak ? '28px' : 0 }}>
-            <span style={{ fontWeight: 700 }}>Sehsuah:</span> {sehsuah}
-          </span>
+    <div style={{ margin: '10px 0' }}>
+      <div style={{ borderTop: SOFT_RULE, marginBottom: '8px' }} />
+      <div style={{ textAlign: 'center', fontSize: '0.95em', lineHeight: 1.35 }}>
+        {hasMoney && (
+          <div>
+            {sehsuah && (
+              <span style={{ marginRight: citpiak ? '40px' : 0 }}>
+                <strong>Sehsuah:</strong> {sehsuah}
+              </span>
+            )}
+            {citpiak && (
+              <span>
+                <strong>Citpiak:</strong> {citpiak}
+              </span>
+            )}
+          </div>
         )}
-        {citpiak && (
-          <span>
-            <span style={{ fontWeight: 700 }}>Citpiak:</span> {citpiak}
-          </span>
-        )}
+        <div style={{ fontSize: '1.1em' }}>
+          <strong>Sehsuah &amp; Citpiak Zelle:</strong> {CHURCH_INFO.zelle.main}
+        </div>
+        <div style={{ fontSize: '1.1em' }}>
+          <strong>Building Fund Zelle:</strong> {CHURCH_INFO.zelle.building}
+        </div>
       </div>
+      <div style={{ borderTop: SOFT_RULE, marginTop: '8px' }} />
     </div>
   );
 }
 
-/* ===================== NEXT WEEK 2-COL GRID ===================== */
+/* ===================== NEXT WEEK 2-COL ===================== */
 
 function NextWeekGrid({ bulletin }: { bulletin: Bulletin }) {
   const satISO = addDays(bulletin.date, 6);
@@ -193,18 +233,26 @@ function NextWeekGrid({ bulletin }: { bulletin: Bulletin }) {
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gap: '24px',
-        marginBottom: '20px',
+        marginBottom: '10px',
       }}
     >
-      {/* LEFT: Saturday + Saturday Night */}
       <div>
         <SaturdayBlock saturday={bulletin.nextWeekSaturday} dateISO={satISO} />
         <SaturdayNightBlock data={bulletin.nextWeekSaturdayNight} />
       </div>
-      {/* RIGHT: Sunday */}
       <div>
         <SundayBlock section={bulletin.nextWeekSunday} dateISO={sunISO} />
       </div>
+    </div>
+  );
+}
+
+/** Day header now CENTERED. */
+function DayHeader({ day, date }: { day: string; date: string }) {
+  return (
+    <div style={{ marginBottom: '4px', textAlign: 'center' }}>
+      <strong style={{ fontSize: '1.0em' }}>{day}</strong>{' '}
+      <span style={{ fontSize: '1.0em' }}>{date}</span>
     </div>
   );
 }
@@ -220,58 +268,82 @@ function SaturdayBlock({
   if (visibleRows.length === 0 && !saturday.subtitle.trim()) return null;
 
   return (
-    <div style={{ marginBottom: '14px' }}>
-      <DayHeader day={dayName(dateISO)} date={formatDate(dateISO)} subtitle={saturday.subtitle} />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+    <div style={{ marginBottom: '12px' }}>
+      <DayHeader day={dayName(dateISO)} date={formatDateShort(dateISO)} />
+      {saturday.subtitle.trim() && (
+        <div
+          style={{
+            textAlign: 'left',
+            fontWeight: 700,
+            fontSize: '1.0em',
+            margin: '2px 0 4px',
+          }}
+        >
+          {saturday.subtitle}
+        </div>
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
         {visibleRows.map((row) => (
-          <ProgramRowDisplay key={row.id} row={row} />
+          <ProgramRowDisplay key={row.id} row={row} compact />
         ))}
       </div>
     </div>
   );
 }
 
+/** Now reads from data.rows like every other section. */
 function SaturdayNightBlock({
   data,
 }: {
   data: Bulletin['nextWeekSaturdayNight'];
 }) {
-  if (!data.chairperson.trim() && !data.sermon.trim()) return null;
+  const visibleRows = data.rows.filter((r) => r.label.trim() || r.value.trim());
+  if (visibleRows.length === 0 && !data.serviceType) return null;
+
   return (
-    <div style={{ marginTop: '12px' }}>
-      <div
-        style={{
-          fontWeight: 700,
-          fontSize: '0.95em',
-          borderBottom: '1px solid #57534e',
-          paddingBottom: '4px',
-          marginBottom: '6px',
-        }}
-      >
+    <div style={{ marginTop: '10px' }}>
+      <div style={{ fontWeight: 700, fontSize: '1.0em', marginBottom: '4px' }}>
         Saturday Night Service
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        {data.chairperson.trim() && (
-          <ProgramRowDisplay row={{ id: 'c', label: 'Chairperson', value: data.chairperson }} />
-        )}
-        {data.sermon.trim() && (
-          <ProgramRowDisplay row={{ id: 's', label: 'Sermon', value: data.sermon }} />
-        )}
+
+      {data.serviceType && (
+        <div
+          style={{
+            fontStyle: 'italic',
+            fontWeight: 700,
+            fontSize: '0.95em',
+            marginBottom: '4px',
+          }}
+        >
+          {data.serviceType}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        {visibleRows.map((row) => (
+          <ProgramRowDisplay key={row.id} row={row} compact />
+        ))}
       </div>
     </div>
   );
 }
 
-function SundayBlock({ section, dateISO }: { section: ProgramSection; dateISO: string }) {
+function SundayBlock({
+  section,
+  dateISO,
+}: {
+  section: ProgramSection;
+  dateISO: string;
+}) {
   const visibleRows = section.rows.filter((r) => r.label.trim() || r.value.trim());
   if (visibleRows.length === 0 && !section.hasCommunion) return null;
 
   return (
     <div>
-      <DayHeader day={dayName(dateISO)} date={formatDate(dateISO)} />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <DayHeader day={dayName(dateISO)} date={formatDateShort(dateISO)} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
         {visibleRows.map((row) => (
-          <ProgramRowDisplay key={row.id} row={row} />
+          <ProgramRowDisplay key={row.id} row={row} compact />
         ))}
         {section.hasCommunion && (
           <NekkhawmDisplay
@@ -289,84 +361,76 @@ function SundayBlock({ section, dateISO }: { section: ProgramSection; dateISO: s
 
 function ContactInfo() {
   return (
-    <div style={{ marginTop: '16px' }}>
-      <SectionHeader title="Contact Information" small />
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 24px', fontSize: '0.88em' }}>
-        {CHURCH_INFO.contacts.map((c) => (
-          <div key={c.name} style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span>
-              <span style={{ fontWeight: 700 }}>{c.role}:</span> {c.name}
-            </span>
-            <span style={{ fontVariantNumeric: 'tabular-nums' }}>{c.phone}</span>
-          </div>
-        ))}
+    <div style={{ marginTop: '6px' }}>
+      <div style={{ borderTop: SOFT_RULE, marginBottom: '8px' }} />
+      <div
+        style={{
+          fontFamily: 'Lora, Georgia, serif',
+          fontSize: '0.95em',
+          textAlign: 'center',
+          marginBottom: '6px',
+        }}
+      >
+        Contact Information
       </div>
       <div
         style={{
-          marginTop: '10px',
-          fontSize: '0.85em',
-          textAlign: 'center',
-          borderTop: '1px solid #d6d3d1',
-          paddingTop: '8px',
+          display: 'grid',
+          gridTemplateColumns: 'auto auto auto',
+          columnGap: '32px',
+          rowGap: '2px',
+          justifyContent: 'center',
+          fontSize: '0.88em',
         }}
       >
-        <span style={{ fontWeight: 700 }}>Zelle (Main):</span> {CHURCH_INFO.zelle.main}
-        {'  •  '}
-        <span style={{ fontWeight: 700 }}>Zelle (Building):</span> {CHURCH_INFO.zelle.building}
+        {CHURCH_INFO.contacts.map((c) => (
+          <ContactRow key={c.name} role={c.role} name={c.name} phone={c.phone} />
+        ))}
       </div>
     </div>
+  );
+}
+
+function ContactRow({
+  role,
+  name,
+  phone,
+}: {
+  role: string;
+  name: string;
+  phone: string;
+}) {
+  return (
+    <>
+      <div style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{role}:</div>
+      <div style={{ whiteSpace: 'nowrap' }}>{name}</div>
+      <div style={{ whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+        {phone}
+      </div>
+    </>
   );
 }
 
 /* ===================== SHARED PIECES ===================== */
 
-function SectionHeader({ title, small }: { title: string; small?: boolean }) {
+function ProgramRowDisplay({ row, compact }: { row: ProgramRow; compact?: boolean }) {
+  const label = row.label.replace(/:\s*$/, '');
   return (
     <div
       style={{
-        fontFamily: 'Lora, Georgia, serif',
-        fontStyle: 'italic',
-        fontSize: small ? '1em' : '1.1em',
-        borderBottom: '1.5px solid #1c1917',
-        paddingBottom: '4px',
-        marginBottom: '10px',
-        fontWeight: 600,
+        display: 'flex',
+        gap: '8px',
+        alignItems: 'baseline',
+        fontSize: compact ? '0.95em' : '1.0em',
+        lineHeight: 1.3,
       }}
     >
-      {title}
+      <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{label}:</span>
+      <span style={{ whiteSpace: 'pre-line', flex: 1 }}>{row.value}</span>
     </div>
   );
 }
 
-function DayHeader({ day, date, subtitle }: { day: string; date: string; subtitle?: string }) {
-  return (
-    <div
-      style={{
-        marginBottom: '8px',
-        borderBottom: '1.5px solid #1c1917',
-        paddingBottom: '4px',
-      }}
-    >
-      <div style={{ fontWeight: 700, fontSize: '1em' }}>
-        {day}, {date}
-        {subtitle ? (
-          <span style={{ fontWeight: 400, fontStyle: 'italic' }}> — {subtitle}</span>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-function ProgramRowDisplay({ row }: { row: ProgramRow }) {
-  return (
-    <div style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
-      <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{row.label}:</span>
-      <span style={{ whiteSpace: 'pre-wrap' }}>{row.value}</span>
-    </div>
-  );
-}
-
-/* Nekkhawm: 6 names → 3 rows × 2 cols, ONE NAME PER CELL. */
 function NekkhawmDisplay({
   label,
   names,
@@ -379,43 +443,48 @@ function NekkhawmDisplay({
   const trimmed = names.map((n) => n.trim());
   if (trimmed.every((n) => !n)) return null;
 
-  // Build 3 rows of 2.
-  const rows = [
+  const grid = [
     [trimmed[0], trimmed[1]],
     [trimmed[2], trimmed[3]],
     [trimmed[4], trimmed[5]],
   ];
 
-  // Reduce size slightly so each name comfortably fits one line.
-  const fontSize = compact ? '0.85em' : '0.92em';
+  const fontSize = compact ? '0.78em' : '0.95em';
 
   return (
-    <div style={{ marginTop: compact ? '6px' : '10px' }}>
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-        <div style={{ fontWeight: 700, whiteSpace: 'nowrap', fontSize }}>{label}:</div>
-        <div
-          style={{
-            flex: 1,
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            columnGap: '16px',
-            rowGap: '2px',
-            fontSize,
-          }}
-        >
-          {rows.flat().map((name, i) => (
-            <div
-              key={i}
-              style={{
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {name}
-            </div>
-          ))}
-        </div>
+    <div
+      style={{
+        display: 'flex',
+        gap: '12px',
+        alignItems: 'baseline',
+        marginTop: '4px',
+      }}
+    >
+      <span style={{ fontWeight: 700, whiteSpace: 'nowrap', fontSize }}>
+        {label}:
+      </span>
+      <div
+        style={{
+          flex: 1,
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          columnGap: '24px',
+          rowGap: '2px',
+          fontSize,
+        }}
+      >
+        {grid.flat().map((name, i) => (
+          <div
+            key={i}
+            style={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {name}
+          </div>
+        ))}
       </div>
     </div>
   );

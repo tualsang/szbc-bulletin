@@ -1,8 +1,9 @@
 import { Plus } from 'lucide-react';
 import { ProgramSection, emptyRow } from '../lib/schema';
-import { ProgramRowEditor } from './ui/ProgramRow';
 import { NekkhawmRow } from './ui/NekkhawmRow';
 import { Toggle } from './ui/Toggle';
+import { SortableRowList } from './ui/SortableRowList';
+import { COMMUNION_GROUPS } from '../lib/constants';
 
 interface Props {
   section: ProgramSection;
@@ -10,26 +11,32 @@ interface Props {
 }
 
 export function ProgramSectionEditor({ section, onChange }: Props) {
+  /**
+   * Toggling communion ON used to leave the six name slots blank — the pastor
+   * had to click Group 1 or Group 2 to populate them. Now we auto-fill on
+   * first enable: if every name slot is empty when communion is turned on,
+   * we pre-fill from the currently selected group (default: 1).
+   */
+  const handleCommunionToggle = (next: boolean) => {
+    if (next && section.nekkhawmNames.every((n) => !n.trim())) {
+      const g = section.communionGroup ?? 1;
+      onChange({
+        ...section,
+        hasCommunion: true,
+        communionGroup: g,
+        nekkhawmNames: [...COMMUNION_GROUPS[g]],
+      });
+      return;
+    }
+    onChange({ ...section, hasCommunion: next });
+  };
+
   return (
     <div className="space-y-3">
-      {section.rows.map((row) => (
-        <ProgramRowEditor
-          key={row.id}
-          row={row}
-          onChange={(updated) =>
-            onChange({
-              ...section,
-              rows: section.rows.map((r) => (r.id === row.id ? updated : r)),
-            })
-          }
-          onRemove={() =>
-            onChange({
-              ...section,
-              rows: section.rows.filter((r) => r.id !== row.id),
-            })
-          }
-        />
-      ))}
+      <SortableRowList
+        rows={section.rows}
+        onChange={(rows) => onChange({ ...section, rows })}
+      />
 
       <button
         type="button"
@@ -43,7 +50,7 @@ export function ProgramSectionEditor({ section, onChange }: Props) {
         <Toggle
           label="Communion (Nekkhawm)"
           checked={section.hasCommunion}
-          onChange={(v) => onChange({ ...section, hasCommunion: v })}
+          onChange={handleCommunionToggle}
         />
 
         {section.hasCommunion && (
