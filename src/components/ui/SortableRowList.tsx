@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type React from 'react';
 import {
     DndContext,
     closestCenter,
@@ -9,6 +10,22 @@ import {
     DragEndEvent,
     DragStartEvent,
 } from '@dnd-kit/core';
+
+/**
+ * PointerSensor fires for ALL pointer types including touch, which conflicts
+ * with TouchSensor on mobile. This subclass restricts it to mouse/pen only,
+ * so TouchSensor can exclusively handle touch with its long-press delay.
+ */
+class MousePointerSensor extends PointerSensor {
+    static activators = [
+        {
+            eventName: 'onPointerDown' as const,
+            handler: ({ nativeEvent: event }: React.PointerEvent): boolean => {
+                return event.pointerType !== 'touch';
+            },
+        },
+    ];
+}
 import {
     SortableContext,
     verticalListSortingStrategy,
@@ -34,16 +51,14 @@ interface Props {
  */
 export function SortableRowList({ rows, onChange }: Props) {
     const sensors = useSensors(
-        useSensor(PointerSensor, {
-            // Require the pointer to move 5px before activating — prevents
-            // accidental drags on simple clicks. Works for both mouse and
-            // touch on desktop; TouchSensor below handles mobile long-press.
+        useSensor(MousePointerSensor, {
+            // Mouse/pen only — 5px movement before activating to avoid
+            // accidental drags on clicks.
             activationConstraint: { distance: 5 },
         }),
         useSensor(TouchSensor, {
-            // On touch devices, require a 200ms hold + 5px tolerance so
-            // normal taps still work and text selection is suppressed before
-            // the drag activates.
+            // Touch only — 200ms hold + 5px tolerance so normal taps and
+            // page scrolling still work before the drag activates.
             activationConstraint: { delay: 200, tolerance: 5 },
         })
     );
