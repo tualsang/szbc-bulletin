@@ -3,7 +3,6 @@ import {
     DndContext,
     closestCenter,
     PointerSensor,
-    MouseSensor,
     TouchSensor,
     useSensor,
     useSensors,
@@ -35,9 +34,10 @@ interface Props {
  */
 export function SortableRowList({ rows, onChange }: Props) {
     const sensors = useSensors(
-        useSensor(MouseSensor, {
-            // Require the mouse to move 5px before activating — prevents
-            // accidental drags on simple clicks.
+        useSensor(PointerSensor, {
+            // Require the pointer to move 5px before activating — prevents
+            // accidental drags on simple clicks. Works for both mouse and
+            // touch on desktop; TouchSensor below handles mobile long-press.
             activationConstraint: { distance: 5 },
         }),
         useSensor(TouchSensor, {
