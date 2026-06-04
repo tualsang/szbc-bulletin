@@ -20,7 +20,7 @@ export const COMMUNION_GROUPS: Record<1 | 2, string[]> = {
   1: [
     'Upa Pau Gin Tung',
     'Upa Leeng Kap Emanuel',
-    'Upa Kam Lam Mang',
+    'Upa Kham Lam Mang',
     'Upa Ngin Ngo Kap',
     'Upa Zam Cin Kam',
     'Upa Khan Cin Thang',
