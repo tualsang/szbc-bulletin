@@ -217,7 +217,7 @@ function Offering({ offering }: { offering: Bulletin['offering'] }) {
             )}
             {citpiak && (
               <span>
-                <span style={{ fontWeight: 600 }}>Citpiak:</span> {sehsuah}
+                <span style={{ fontWeight: 600 }}>Citpiak:</span> {citpiak}
 
               </span>
             )}
