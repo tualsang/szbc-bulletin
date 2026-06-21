@@ -3,7 +3,7 @@ import { Bulletin, ProgramSection, ProgramRow } from '../lib/schema';
 import { CHURCH_INFO } from '../lib/constants';
 import { addDays, formatDateShort, dayName } from '../lib/date';
 import { formatMoney } from '../lib/money';
-import { useFitToFill } from '../lib/fit-content';
+import { useFitToFill, useShrinkToFit } from '../lib/fit-content';
 
 interface Props {
   bulletin: Bulletin;
@@ -86,7 +86,6 @@ function BulletinHalf({ bulletin }: { bulletin: Bulletin }) {
       >
         <Header />
         <TodaysProgramFitted section={bulletin.todaysProgram} />
-        <div style={{ flex: 1, minHeight: 0 }} />
 
         {/* Next-week area runs larger than Today's Program. */}
         <div style={{ fontSize: '38px' }}>
@@ -152,7 +151,7 @@ function Header() {
 function TodaysProgramFitted({ section }: { section: ProgramSection }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  useFitToFill(containerRef, contentRef, { min: 36, max: 60 });
+  useShrinkToFit(containerRef, contentRef, { min: 24, max: 38 });
 
   const visibleRows = section.rows.filter((r) => r.label.trim() || r.value.trim());
   const empty = visibleRows.length === 0 && !section.hasCommunion;
