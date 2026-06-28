@@ -206,7 +206,7 @@ function Offering({ offering }: { offering: Bulletin['offering'] }) {
   return (
     <div style={{ margin: '10px 0' }}>
       <div style={{ borderTop: SOFT_RULE, marginBottom: '8px' }} />
-      <div style={{ textAlign: 'center', fontSize: '0.95em', lineHeight: 1.35 }}>
+      <div style={{ textAlign: 'center', fontSize: '1em', lineHeight: 1.35 }}>
         {hasMoney && (
           <div>
             {sehsuah && (
@@ -222,10 +222,10 @@ function Offering({ offering }: { offering: Bulletin['offering'] }) {
             )}
           </div>
         )}
-        <div style={{ fontSize: '1.1em' }}>
+        <div style={{ fontSize: '1em' }}>
           <strong>Sehsuah &amp; Citpiak Zelle:</strong> {CHURCH_INFO.zelle.main}
         </div>
-        <div style={{ fontSize: '1.1em' }}>
+        <div style={{ fontSize: '1em' }}>
           <strong>Building Fund Zelle:</strong> {CHURCH_INFO.zelle.building}
         </div>
       </div>
@@ -323,7 +323,7 @@ function SaturdayNightBlock({
         <div
           style={{
             fontWeight: 600,
-            fontSize: '0.95em',
+            fontSize: '1em',
             marginBottom: '4px',
           }}
         >
@@ -378,7 +378,7 @@ function ContactInfo() {
       <div
         style={{
           fontFamily: 'Lora, Georgia, serif',
-          fontSize: '0.95em',
+          fontSize: '1em',
           textAlign: 'center',
           marginBottom: '6px',
         }}
@@ -392,7 +392,7 @@ function ContactInfo() {
           columnGap: '32px',
           rowGap: '2px',
           // remove: justifyContent: 'center',
-          fontSize: '0.88em',
+          fontSize: '1em',
         }}
       >
         {CHURCH_INFO.contacts.map((c) => (
