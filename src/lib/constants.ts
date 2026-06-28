@@ -9,7 +9,7 @@ export const CHURCH_INFO = {
   contacts: [
     { role: 'Pastor', name: 'Revd. Lian Za Sum', phone: '+1 (980) 298-8794' },
     { role: 'Pastor', name: 'Revd. Ning Ngaih Muang', phone: '+1 (704) 891-4803' },
-    { role: 'Pastor', name: 'Pastor Thang Tawn Mung', phone: '+1 (704) 890-8733' },
+    { role: 'Pastor', name: 'Pastor Thang Thawn Mung', phone: '+1 (704) 890-8733' },
     { role: 'President', name: 'Upa Pau Gin Tung', phone: '+1 (704) 906-4365' },
     { role: 'Secretary', name: 'Upa Dongh Lam Cin', phone: '+1 (704) 705-9228' },
   ],
