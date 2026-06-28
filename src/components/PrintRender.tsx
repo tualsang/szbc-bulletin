@@ -151,7 +151,7 @@ function Header() {
 function TodaysProgramFitted({ section }: { section: ProgramSection }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  useShrinkToFit(containerRef, contentRef, { min: 24, max: 38 });
+  useShrinkToFit(containerRef, contentRef, { min: 24, max: 50 });
 
   const visibleRows = section.rows.filter((r) => r.label.trim() || r.value.trim());
   const empty = visibleRows.length === 0 && !section.hasCommunion;
